@@ -17,9 +17,10 @@ class AutoDrive:
     def trace(self):
         obs_l, obs_m, obs_r = self.obstacle_detector.get_distance()
         left, right = self.line_detector.direction_info
+        self.line_detector.show_image()
         angle = self.steer(left, right)
         speed = self.accelerate(angle, obs_l, obs_m, obs_r)
-        self.driver.drive(angle + 90, speed + 90)
+        self.driver.drive(angle + 90, 90)
 
     def steer(self, left, right):
         mid = (left + right) // 2
@@ -45,7 +46,7 @@ class AutoDrive:
 
 if __name__ == '__main__':
     car = AutoDrive()
-    time.sleep(3)
+    time.sleep(4)
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         car.trace()
