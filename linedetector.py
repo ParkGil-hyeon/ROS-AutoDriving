@@ -1,6 +1,7 @@
 import rospy
 import cv2
 import numpy as np
+import time
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -17,23 +18,25 @@ pixel_cnt_threshold = 0.6 * area_width * area_height
 class LineDetector:
 
     def __init__(self, topic):
-        self.scan_height = 80
-        self.image_width = 640
-        self.roi_vertical_pos = 270
+        self.step_1 = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
+        self.step_2 = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
+        self.step_3 = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
+        self.step_4 = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
         self.cam_img = np.zeros(shape=(480, 640, 3), dtype=np.uint8)
-        self.result = np.zeros(shape=(self.scan_height, self.image_width, 3), dtype=np.uint8)
+        self.result = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
         self.bridge = CvBridge()
         rospy.Subscriber(topic, Image, self.conv_image)
-        self.direction_info = [None, None]
+        self.direction_info = [0, 640]
 
     def conv_image(self, data):
         self.cam_img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
-        v = self.roi_vertical_pos
-        roi = self.cam_img[v:v + self.scan_height, :]
+        v = roi_vertical_pos
+        roi = self.cam_img[v:v + scan_height, :]
 
         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         roi = cv2.GaussianBlur(roi, (5, 5), 0)
         roi = cv2.Canny(roi, 50, 100)
+        self.step_1 = roi
         lines = cv2.HoughLines(roi, 1, np.pi / 180, 80, None, 0, 0)
 
         left = [0, 0, 0, 0]
@@ -41,7 +44,8 @@ class LineDetector:
         right = [0, 0, 0, 0]
         right_count = 0
 
-        result = np.zeros((self.scan_height, self.image_width, 3), dtype=np.uint8)
+        result = np.zeros((scan_height, image_width, 3), dtype=np.uint8)
+        test = np.zeros((scan_height, image_width, 3), dtype=np.uint8)
         if lines is not None:
             for line in lines:
                 for rho, theta in line:
@@ -55,21 +59,27 @@ class LineDetector:
                     x2 = int(x0 - 1000 * (-b))
                     y2 = int(y0 - 1000 * (a))
 
-                    if (y2 - y1) / (x2 - x1) <= -0.2:
+                    if float(y2 - y1) / float(x2 - x1) <= -0.2:
                         left[0] += x1
                         left[1] += y1
                         left[2] += x2
                         left[3] += y2
                         left_count += 1
-                    elif (y2 - y1) / (x2 - x1) >= 0.2:
+                        cv2.line(test, (x1, y1), (x2, y2), (255, 0, 0), 3, cv2.LINE_AA)
+                    elif float(y2 - y1) / float(x2 - x1) >= 0.2:
                         right[0] += x1
                         right[1] += y1
                         right[2] += x2
                         right[3] += y2
                         right_count += 1
+                        cv2.line(test, (x1, y1), (x2, y2), (0, 255, 0), 3, cv2.LINE_AA)
+                    else:
+                        cv2.line(test, (x1, y1), (x2, y2), (0, 0, 255), 3, cv2.LINE_AA)
+        self.step_2 = test
 
         cv2.line(result, (left[0], left[1]), (left[2], left[3]), (255, 0, 0), 3, cv2.LINE_AA)
         cv2.line(result, (right[0], right[1]), (right[2], right[3]), (255, 0, 0), 3, cv2.LINE_AA)
+        self.step_3 = result
 
         hsv = cv2.cvtColor(result, cv2.COLOR_BGR2HSV)
 
@@ -79,7 +89,7 @@ class LineDetector:
         bin = cv2.inRange(hsv, lbound, ubound)
         view = cv2.cvtColor(bin, cv2.COLOR_GRAY2BGR)
 
-        left, right = 10, 630
+        left, right = -1, 631
 
         for l in range(area_width, lmid):
             area = bin[row_begin:row_end, l - area_width:l]
@@ -99,17 +109,24 @@ class LineDetector:
                                     (left, row_end),
                                     (0, 255, 0), 3)
         else:
-            print("Lost left line")
+            pass
+            # print("Lost left line")
 
-        if right != -1:
+        if right != 631:
             rsquare = cv2.rectangle(view,
                                     (right, row_begin),
                                     (right + area_width, row_end),
                                     (0, 255, 0), 3)
         else:
-            print("Lost right line")
+            pass
+            # print("Lost right line")
         self.direction_info = [left, right]
+        self.step_4 = view
+        # print(left, right)
 
-        cv2.imshow('canny', roi)
-        cv2.imshow('result', result)
-        cv2.imshow('find', view)
+    def show_image(self):
+        cv2.imshow('step_1', self.step_1)
+        cv2.imshow('step_2', self.step_2)
+        cv2.imshow('step_3', self.step_3)
+        cv2.imshow('step_4', self.step_4)
+        cv2.waitKey(1)
