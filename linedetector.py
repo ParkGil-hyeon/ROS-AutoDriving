@@ -7,10 +7,10 @@ from cv_bridge import CvBridge
 
 image_width = 640
 scan_width, scan_height = 300, 80
-roi_vertical_pos = 270
+roi_vertical_pos = 250
 area_width = 5
 area_height = 5
-row_begin = (scan_height - area_height) // 2
+row_begin = (scan_height - area_height) // 2 - 10
 row_end = row_begin + area_height
 lmid, rmid = scan_width, image_width - scan_width
 pixel_cnt_threshold = 0.6 * area_width * area_height
@@ -25,8 +25,8 @@ class LineDetector:
         self.cam_img = np.zeros(shape=(480, 640, 3), dtype=np.uint8)
         self.result = np.zeros(shape=(scan_height, image_width, 3), dtype=np.uint8)
         self.bridge = CvBridge()
+        self.direction_info = [-40, 680]
         rospy.Subscriber(topic, Image, self.conv_image)
-        self.direction_info = [0, 640]
 
     def conv_image(self, data):
         self.cam_img = self.bridge.imgmsg_to_cv2(data, 'bgr8')
@@ -35,7 +35,7 @@ class LineDetector:
 
         roi = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         roi = cv2.GaussianBlur(roi, (5, 5), 0)
-        roi = cv2.Canny(roi, 50, 100)
+        roi = cv2.Canny(roi, 50, 80)
         self.step_1 = roi
         lines = cv2.HoughLines(roi, 1, np.pi / 180, 80, None, 0, 0)
 
@@ -77,6 +77,13 @@ class LineDetector:
                         cv2.line(test, (x1, y1), (x2, y2), (0, 0, 255), 3, cv2.LINE_AA)
         self.step_2 = test
 
+        if left_count > 0:
+            for i, value in enumerate(left):
+                left[i] = value // left_count
+        if right_count > 0:
+            for i, value in enumerate(right):
+                right[i] = value // right_count
+
         cv2.line(result, (left[0], left[1]), (left[2], left[3]), (255, 0, 0), 3, cv2.LINE_AA)
         cv2.line(result, (right[0], right[1]), (right[2], right[3]), (255, 0, 0), 3, cv2.LINE_AA)
         self.step_3 = result
@@ -89,7 +96,7 @@ class LineDetector:
         bin = cv2.inRange(hsv, lbound, ubound)
         view = cv2.cvtColor(bin, cv2.COLOR_GRAY2BGR)
 
-        left, right = -1, 631
+        left, right = -40, 680
 
         for l in range(area_width, lmid):
             area = bin[row_begin:row_end, l - area_width:l]
@@ -103,7 +110,7 @@ class LineDetector:
                 right = r
                 break
 
-        if left != -1:
+        if left != -40:
             lsquare = cv2.rectangle(view,
                                     (left - area_width, row_begin),
                                     (left, row_end),
@@ -112,7 +119,7 @@ class LineDetector:
             pass
             # print("Lost left line")
 
-        if right != 631:
+        if right != 680:
             rsquare = cv2.rectangle(view,
                                     (right, row_begin),
                                     (right + area_width, row_end),
@@ -125,8 +132,8 @@ class LineDetector:
         # print(left, right)
 
     def show_image(self):
-        cv2.imshow('step_1', self.step_1)
-        cv2.imshow('step_2', self.step_2)
-        cv2.imshow('step_3', self.step_3)
-        cv2.imshow('step_4', self.step_4)
+        # cv2.imshow('step_1', self.step_1)
+        # cv2.imshow('step_2', self.step_2)
+        # cv2.imshow('step_3', self.step_3)
+        # cv2.imshow('step_4', self.step_4)
         cv2.waitKey(1)
