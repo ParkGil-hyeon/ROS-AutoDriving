@@ -26,15 +26,17 @@ class AutoDrive:
         mid = (left + right) // 2
         angle = (mid - 320) // 1.7
         angle = max(-30, angle) if angle > 0 else min(30, angle)
+        print(angle)
         return angle
 
     def accelerate(self, angle, left, mid, right):
         # if min(left, mid, right) < 50:
         #     speed = 0
-        if angle < -20 or angle > 20:
-            speed = 15
+        if angle <= -10 or angle >= 10:
+            speed = 22
         else:
-            speed = 15
+            speed = 33
+        print(speed)
         return speed
 
     def exit(self):
