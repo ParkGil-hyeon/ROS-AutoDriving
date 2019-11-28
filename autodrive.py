@@ -20,25 +20,21 @@ class AutoDrive:
         self.line_detector.show_image()
         angle = self.steer(left, right)
         speed = self.accelerate(angle, obs_l, obs_m, obs_r)
-        self.driver.drive(angle + 90, 90)
+        self.driver.drive(angle + 90, speed + 90)
 
     def steer(self, left, right):
         mid = (left + right) // 2
-        if mid < 280:
-            angle = -30
-        elif mid > 360:
-            angle = 30
-        else:
-            angle = 0
+        angle = (mid - 320) // 1.7
+        angle = max(-30, angle) if angle > 0 else min(30, angle)
         return angle
 
     def accelerate(self, angle, left, mid, right):
         # if min(left, mid, right) < 50:
         #     speed = 0
         if angle < -20 or angle > 20:
-            speed = 20
+            speed = 15
         else:
-            speed = 30
+            speed = 15
         return speed
 
     def exit(self):
@@ -50,5 +46,4 @@ if __name__ == '__main__':
     rate = rospy.Rate(10)
     while not rospy.is_shutdown():
         car.trace()
-        rate.sleep()
     rospy.on_shutdown(car.exit)
