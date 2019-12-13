@@ -13,4 +13,4 @@ Autonomous vehicles :
 
 - AutoDrive
 
-<iframe width="640" height="360" src="https://youtu.be/JnRaTO2-fpo" frameborder="0" gesture="media" allowfullscreen=""></iframe>
+[![Video Label](https://i9.ytimg.com/vi/JnRaTO2-fpo/mq2.jpg?sqp=CPbwy-8F&rs=AOn4CLAe_vR6u3oS9zel1dEjc4zh5us1xQ)](https://youtu.be/JnRaTO2-fpo)
