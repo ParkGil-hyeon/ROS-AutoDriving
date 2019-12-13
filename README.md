@@ -3,6 +3,7 @@
 ## Kookmin University start-up engineering design
 
 Xycar와 ROS를 이용한 자율주행자동차
+<창업연계공학설계입문 2분반 5조>
 
 
 Autonomous vehicles :
