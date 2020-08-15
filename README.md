@@ -15,7 +15,7 @@ Autonomous vehicles :
 - AutoDrive
 
 ## 자율 주행 완주 후 장애물 앞 정지 영상 링크
-[![Video Label](https://i9.ytimg.com/vi/JnRaTO2-fpo/mq2.jpg?sqp=CPbwy-8F&rs=AOn4CLAe_vR6u3oS9zel1dEjc4zh5us1xQ)](https://youtu.be/JnRaTO2-fpo)
+[![Video Label](http://img.youtube.com/vi/JnRaTO2-fpo/2.jpg)](https://www.youtube.com/watch?v=JnRaTO2-fpo?t=0s)
 
 ## 장애물 인식 후 정지 및 전진, 후진 영상 링크
 [![Video Label](https://i9.ytimg.com/vi/PnGc0I-nOdQ/mq1.jpg?sqp=CID1y-8F&rs=AOn4CLDtH42K07a2domytWsmklg0S7vIxg)](https://youtu.be/PnGc0I-nOdQ)
